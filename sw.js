@@ -1,5 +1,5 @@
 // Service Worker - 支援離線瀏覽行程
-const CACHE_NAME = "nagoya-trip-v1";
+const CACHE_NAME = "nagoya-trip-v3";
 
 // 需要快取的靜態資源
 const ASSETS = [
