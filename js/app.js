@@ -399,7 +399,7 @@ async function sendMessage() {
   const text = chatInput.value.trim();
   if (!text && !pendingImage) return;
   if (!geminiKey) {
-    showToast("請先在設定中輸入 Gemini API Key");
+    showToast("請先在設定中輸入 Groq API Key");
     return;
   }
 
@@ -425,7 +425,7 @@ async function sendMessage() {
   const typingEl = appendTyping();
 
   try {
-    const response = await callGemini(text, imgData);
+    const response = await callGroq(text, imgData);
     typingEl.remove();
     appendChat("ai", response);
   } catch (e) {
@@ -437,42 +437,47 @@ async function sendMessage() {
   chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
-async function callGemini(text, imageBase64) {
-  const model = "gemini-1.5-flash-latest";
-  const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${geminiKey}`;
+async function callGroq(text, imageBase64) {
+  // Groq 支援視覺的模型：llama-3.2-11b-vision-preview
+  const model = imageBase64
+    ? "llama-3.2-11b-vision-preview"
+    : "llama-3.3-70b-versatile";
+  const url = "https://api.groq.com/openai/v1/chat/completions";
 
-  // 系統提示：旅遊助理角色
   const systemPrompt = `你是一個親切的旅遊助理，正在協助一個台灣家庭在日本名古屋、飛驒高山一帶旅行（2026年3月25-30日）。
 請用繁體中文回答。如果看到日文圖片或招牌，請翻譯並解釋。
 回答要簡潔，適合手機閱讀，必要時用條列式。`;
 
-  const parts = [];
-
-  // 如果有圖片，加入圖片 part
+  // 組裝訊息內容（支援圖片）
+  let userContent;
   if (imageBase64) {
-    parts.push({
-      inlineData: {
-        mimeType: "image/jpeg",
-        data: imageBase64,
+    userContent = [
+      {
+        type: "image_url",
+        image_url: { url: `data:image/jpeg;base64,${imageBase64}` },
       },
-    });
+      { type: "text", text: text || "請翻譯這張圖片的內容，並說明重要資訊。" },
+    ];
+  } else {
+    userContent = text;
   }
 
-  // 文字內容
-  parts.push({ text: text || "請翻譯這張圖片的內容，並說明重要資訊。" });
-
   const body = {
-    system_instruction: { parts: [{ text: systemPrompt }] },
-    contents: [{ role: "user", parts }],
-    generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 1000,
-    },
+    model,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userContent },
+    ],
+    temperature: 0.7,
+    max_tokens: 1000,
   };
 
   const res = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${geminiKey}`, // 變數名沿用，存的是 Groq key
+    },
     body: JSON.stringify(body),
   });
 
@@ -482,7 +487,7 @@ async function callGemini(text, imageBase64) {
   }
 
   const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || "（沒有回應）";
+  return data.choices?.[0]?.message?.content || "（沒有回應）";
 }
 
 function appendChat(type, content) {
