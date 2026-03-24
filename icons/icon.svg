@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <!-- 背景 -->
+  <rect width="192" height="192" rx="40" fill="url(#grad)"/>
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E8527A"/>
+      <stop offset="100%" style="stop-color:#7B3FA8"/>
+    </linearGradient>
+  </defs>
+  <!-- 櫻花花瓣 -->
+  <g transform="translate(96,90)">
+    <ellipse cx="0" cy="-28" rx="12" ry="20" fill="#FFD6E3" opacity="0.9" transform="rotate(0)"/>
+    <ellipse cx="0" cy="-28" rx="12" ry="20" fill="#FFD6E3" opacity="0.9" transform="rotate(72)"/>
+    <ellipse cx="0" cy="-28" rx="12" ry="20" fill="#FFD6E3" opacity="0.9" transform="rotate(144)"/>
+    <ellipse cx="0" cy="-28" rx="12" ry="20" fill="#FFD6E3" opacity="0.9" transform="rotate(216)"/>
+    <ellipse cx="0" cy="-28" rx="12" ry="20" fill="#FFD6E3" opacity="0.9" transform="rotate(288)"/>
+    <circle cx="0" cy="0" r="12" fill="#FFFFFF" opacity="0.95"/>
+    <circle cx="0" cy="0" r="5" fill="#E8527A"/>
+  </g>
+  <!-- 地圖標記 -->
+  <text x="96" y="155" text-anchor="middle" font-size="28" fill="white" opacity="0.9">🗺️</text>
+</svg>
