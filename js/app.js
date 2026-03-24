@@ -133,8 +133,21 @@ function renderDay(day) {
 }
 
 function renderRoute(route) {
+  // 導航連結：手機直接開 Google Maps App 導航模式
+  const toEncoded = encodeURIComponent(route.to);
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isAndroid = /Android/.test(navigator.userAgent);
+  let navUrl;
+  if (isIOS) {
+    navUrl = `comgooglemaps://?daddr=${toEncoded}&directionsmode=driving`;
+  } else if (isAndroid) {
+    navUrl = `google.navigation:q=${toEncoded}`;
+  } else {
+    navUrl = route.mapUrl; // 桌機用原本的網頁連結
+  }
+
   return `
-    <a class="route-card" href="${route.mapUrl}" target="_blank">
+    <a class="route-card" href="${navUrl}" target="_blank">
       <span class="route-icon">🚗</span>
       <div class="route-info">
         <div class="route-from-to">${route.from} → ${route.to}</div>
@@ -145,8 +158,18 @@ function renderRoute(route) {
   `;
 }
 
+// 產生 Google Maps App 深層連結（手機會直接開 App）
+function getMapsUrl(query) {
+  const encoded = encodeURIComponent(query);
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isAndroid = /Android/.test(navigator.userAgent);
+  if (isIOS) return `maps://?q=${encoded}`; // iOS：優先開 Apple Maps（支援 Google Maps）
+  if (isAndroid) return `geo:0,0?q=${encoded}`; // Android：直接開 Google Maps App
+  return `https://maps.google.com/maps?q=${encoded}`; // 桌機：開網頁版
+}
+
 function renderItem(item) {
-  const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.mapQuery)}`;
+  const mapUrl = getMapsUrl(item.mapQuery);
   const recBadge = item.isRecommendation
     ? '<span class="rec-badge">💡 AI 推薦</span>'
     : "";
