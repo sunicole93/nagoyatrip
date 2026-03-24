@@ -438,7 +438,7 @@ async function sendMessage() {
 }
 
 async function callGemini(text, imageBase64) {
-  const model = "gemini-2.0-flash";
+  const model = "gemini-2.0-flash-lite";
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
 
   // 系統提示：旅遊助理角色
