@@ -147,18 +147,37 @@ function renderRoute(route) {
   `;
 }
 
-// 強制開啟 Google Maps App（onclick 比 href 更可靠）
+// iOS 開啟 App：偵測頁面切走就取消備援，避免回來後再跳網頁版
+function iosOpenApp(appUrl, webFallback) {
+  // 備援：若 App 沒開成功才跳網頁版
+  const timer = setTimeout(() => {
+    window.location.href = webFallback;
+  }, 1500);
+
+  // 頁面切走（App 開成功）→ 立刻取消備援
+  const onHide = () => clearTimeout(timer);
+  window.addEventListener("blur", onHide, { once: true });
+  document.addEventListener(
+    "visibilitychange",
+    () => {
+      if (document.hidden) clearTimeout(timer);
+    },
+    { once: true },
+  );
+
+  window.location.href = appUrl;
+}
+
+// 搜尋地點
 function openMap(query) {
   const encoded = encodeURIComponent(query);
   const ua = navigator.userAgent;
   if (/iPhone|iPad|iPod/.test(ua)) {
-    // iOS：先跳 Google Maps App，若未安裝 1.5 秒後改開網頁版
-    window.location.href = `comgooglemaps://?q=${encoded}`;
-    setTimeout(() => {
-      window.location.href = `https://maps.google.com/maps?q=${encoded}`;
-    }, 1500);
+    iosOpenApp(
+      `comgooglemaps://?q=${encoded}`,
+      `https://maps.google.com/maps?q=${encoded}`,
+    );
   } else if (/Android/.test(ua)) {
-    // Android：intent URL 強制開 Google Maps App
     window.location.href = `intent://maps.google.com/maps?q=${encoded}#Intent;scheme=https;package=com.google.android.apps.maps;end`;
   } else {
     window.open(`https://maps.google.com/maps?q=${encoded}`, "_blank");
@@ -171,10 +190,10 @@ function openNav(to) {
   const encoded = encodeURIComponent(to);
   const ua = navigator.userAgent;
   if (/iPhone|iPad|iPod/.test(ua)) {
-    window.location.href = `comgooglemaps://?daddr=${encoded}&directionsmode=driving`;
-    setTimeout(() => {
-      window.location.href = `https://maps.google.com/maps?daddr=${encoded}`;
-    }, 1500);
+    iosOpenApp(
+      `comgooglemaps://?daddr=${encoded}&directionsmode=driving`,
+      `https://maps.google.com/maps?daddr=${encoded}`,
+    );
   } else if (/Android/.test(ua)) {
     window.location.href = `google.navigation:q=${encoded}`;
   } else {
