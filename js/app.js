@@ -10,6 +10,7 @@ let firebaseApp = null;
 let firestoreDb = null;
 let pendingImage = null; // base64 圖片字串
 let saveTimers = {}; // debounce 計時器
+let chatHistory = []; // 對話記憶（讓 AI 記住前幾句話）
 
 // ── 初始化 ───────────────────────────────
 document.addEventListener("DOMContentLoaded", async () => {
@@ -337,6 +338,7 @@ function openAiModal() {
 
 function closeAiModal() {
   aiModal.setAttribute("hidden", "");
+  chatHistory = []; // 關閉時清空記憶，下次開啟重新開始
 }
 
 function showNoKeyMessage() {
@@ -462,11 +464,17 @@ async function callGroq(text, imageBase64) {
     userContent = text;
   }
 
+  // 把這次問題存入對話歷史
+  chatHistory.push({ role: "user", content: userContent });
+
+  // 只保留最近 20 則，避免 token 超限
+  if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+
   const body = {
     model,
     messages: [
       { role: "system", content: systemPrompt },
-      { role: "user", content: userContent },
+      ...chatHistory, // 帶入完整對話記憶，AI 就能記住前幾句
     ],
     temperature: 0.7,
     max_tokens: 1000,
@@ -476,7 +484,7 @@ async function callGroq(text, imageBase64) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${geminiKey}`, // 變數名沿用，存的是 Groq key
+      Authorization: `Bearer ${geminiKey}`,
     },
     body: JSON.stringify(body),
   });
@@ -487,7 +495,12 @@ async function callGroq(text, imageBase64) {
   }
 
   const data = await res.json();
-  return data.choices?.[0]?.message?.content || "（沒有回應）";
+  const reply = data.choices?.[0]?.message?.content || "（沒有回應）";
+
+  // AI 回覆也存入歷史，下一輪才知道自己說過什麼
+  chatHistory.push({ role: "assistant", content: reply });
+
+  return reply;
 }
 
 function appendChat(type, content) {
