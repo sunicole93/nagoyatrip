@@ -133,43 +133,57 @@ function renderDay(day) {
 }
 
 function renderRoute(route) {
-  // 導航連結：手機直接開 Google Maps App 導航模式
-  const toEncoded = encodeURIComponent(route.to);
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  const isAndroid = /Android/.test(navigator.userAgent);
-  let navUrl;
-  if (isIOS) {
-    navUrl = `comgooglemaps://?daddr=${toEncoded}&directionsmode=driving`;
-  } else if (isAndroid) {
-    navUrl = `google.navigation:q=${toEncoded}`;
-  } else {
-    navUrl = route.mapUrl; // 桌機用原本的網頁連結
-  }
-
+  const safeFrom = route.from.replace(/'/g, "\\'");
+  const safeTo = route.to.replace(/'/g, "\\'");
   return `
-    <a class="route-card" href="${navUrl}" target="_blank">
+    <div class="route-card" onclick="openNav('${safeTo}')">
       <span class="route-icon">🚗</span>
       <div class="route-info">
         <div class="route-from-to">${route.from} → ${route.to}</div>
         <div class="route-duration">⏱ ${route.duration}</div>
       </div>
       <span class="route-arrow">›</span>
-    </a>
+    </div>
   `;
 }
 
-// 產生 Google Maps App 深層連結（手機會直接開 App）
-function getMapsUrl(query) {
+// 強制開啟 Google Maps App（onclick 比 href 更可靠）
+function openMap(query) {
   const encoded = encodeURIComponent(query);
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  const isAndroid = /Android/.test(navigator.userAgent);
-  if (isIOS) return `maps://?q=${encoded}`; // iOS：優先開 Apple Maps（支援 Google Maps）
-  if (isAndroid) return `geo:0,0?q=${encoded}`; // Android：直接開 Google Maps App
-  return `https://maps.google.com/maps?q=${encoded}`; // 桌機：開網頁版
+  const ua = navigator.userAgent;
+  if (/iPhone|iPad|iPod/.test(ua)) {
+    // iOS：先跳 Google Maps App，若未安裝 1.5 秒後改開網頁版
+    window.location.href = `comgooglemaps://?q=${encoded}`;
+    setTimeout(() => {
+      window.location.href = `https://maps.google.com/maps?q=${encoded}`;
+    }, 1500);
+  } else if (/Android/.test(ua)) {
+    // Android：intent URL 強制開 Google Maps App
+    window.location.href = `intent://maps.google.com/maps?q=${encoded}#Intent;scheme=https;package=com.google.android.apps.maps;end`;
+  } else {
+    window.open(`https://maps.google.com/maps?q=${encoded}`, "_blank");
+  }
 }
+window.openMap = openMap;
+
+// 導航路線（A → B）
+function openNav(to) {
+  const encoded = encodeURIComponent(to);
+  const ua = navigator.userAgent;
+  if (/iPhone|iPad|iPod/.test(ua)) {
+    window.location.href = `comgooglemaps://?daddr=${encoded}&directionsmode=driving`;
+    setTimeout(() => {
+      window.location.href = `https://maps.google.com/maps?daddr=${encoded}`;
+    }, 1500);
+  } else if (/Android/.test(ua)) {
+    window.location.href = `google.navigation:q=${encoded}`;
+  } else {
+    window.open(`https://maps.google.com/maps?daddr=${encoded}`, "_blank");
+  }
+}
+window.openNav = openNav;
 
 function renderItem(item) {
-  const mapUrl = getMapsUrl(item.mapQuery);
   const recBadge = item.isRecommendation
     ? '<span class="rec-badge">💡 AI 推薦</span>'
     : "";
@@ -185,7 +199,7 @@ function renderItem(item) {
           <div class="item-subtitle">${item.subtitle}</div>
           ${recBadge}
         </div>
-        <a class="map-btn" href="${mapUrl}" target="_blank" title="在 Google Maps 開啟">🗺️</a>
+        <button class="map-btn" onclick="openMap('${item.mapQuery.replace(/'/g, "\\'")}')" title="開啟 Google Maps">🗺️</button>
       </div>
       <div class="item-notes">
         <div class="notes-label">📝 備注</div>
