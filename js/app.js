@@ -438,8 +438,8 @@ async function sendMessage() {
 }
 
 async function callGemini(text, imageBase64) {
-  const model = "gemini-2.0-flash-lite";
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
+  const model = "gemini-1.5-flash-latest";
+  const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${geminiKey}`;
 
   // 系統提示：旅遊助理角色
   const systemPrompt = `你是一個親切的旅遊助理，正在協助一個台灣家庭在日本名古屋、飛驒高山一帶旅行（2026年3月25-30日）。
