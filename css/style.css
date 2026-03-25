@@ -196,12 +196,12 @@ body {
   flex: 1;
 }
 .route-from-to {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text);
   font-weight: 500;
 }
 .route-duration {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--pink);
   font-weight: 600;
   margin-top: 1px;
@@ -233,7 +233,7 @@ body {
 
 .item-time {
   min-width: 48px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--pink);
   text-align: center;
@@ -276,12 +276,12 @@ body {
   min-width: 0;
 }
 .item-title {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 600;
   line-height: 1.3;
 }
 .item-subtitle {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--subtext);
   margin-top: 3px;
   line-height: 1.4;
@@ -438,8 +438,8 @@ body {
   max-width: 84%;
   padding: 10px 14px;
   border-radius: 18px;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.6;
 }
 
 .ai-bubble {
